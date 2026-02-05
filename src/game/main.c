@@ -30,7 +30,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+    Uint32 renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
+    SDL_Renderer *ren = SDL_CreateRenderer(win, -1, renderer_flags);
+    if (!ren) {
+        renderer_flags = SDL_RENDERER_ACCELERATED;
+        ren = SDL_CreateRenderer(win, -1, renderer_flags);
+    }
     if (!ren) {
         fprintf(stderr, "SDL_CreateRenderer error: %s\n", SDL_GetError());
         SDL_DestroyWindow(win);
@@ -42,6 +47,9 @@ int main(int argc, char *argv[])
     imgui_ctx.window = win;
     imgui_ctx.renderer = ren;
     int imgui_enabled = imgui_c_init(&imgui_ctx);
+    if (!imgui_enabled) {
+        fprintf(stderr, "ImGui disabled or failed to initialize (build with IMGUI=1 and set IMGUI_DIR if needed).\n");
+    }
 
     double posX = 22.0, posY = 12.0; // player start
     double dirX = -1.0, dirY = 0.0; // initial direction vector
@@ -56,7 +64,14 @@ int main(int argc, char *argv[])
     bool running = true;
     Uint32 oldTime = SDL_GetTicks();
 
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+    bool ui_visible = imgui_enabled;
+    if (ui_visible) {
+        SDL_SetRelativeMouseMode(SDL_FALSE);
+        SDL_ShowCursor(SDL_ENABLE);
+    } else {
+        SDL_SetRelativeMouseMode(SDL_TRUE);
+        SDL_ShowCursor(SDL_DISABLE);
+    }
     bool isFullscreen = false;
 
     // if no map argument provided, offer to pick one from maps/ or use default
@@ -133,8 +148,21 @@ int main(int argc, char *argv[])
     while (running) {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
+            if (imgui_enabled) {
+                imgui_c_process_event(&e);
+            }
             if (e.type == SDL_QUIT) running = false;
             if (e.type == SDL_KEYDOWN) {
+                if (imgui_enabled && e.key.keysym.sym == SDLK_F1) {
+                    ui_visible = !ui_visible;
+                    if (ui_visible) {
+                        SDL_SetRelativeMouseMode(SDL_FALSE);
+                        SDL_ShowCursor(SDL_ENABLE);
+                    } else {
+                        SDL_SetRelativeMouseMode(SDL_TRUE);
+                        SDL_ShowCursor(SDL_DISABLE);
+                    }
+                }
                 if (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_p) {
                     // pause menu
                     const SDL_MessageBoxButtonData buttons[] = {
@@ -153,8 +181,13 @@ int main(int argc, char *argv[])
                     if (buttonid == 1) {
                         running = false;
                     } else {
-                        SDL_SetRelativeMouseMode(SDL_TRUE);
-                        SDL_ShowCursor(SDL_DISABLE);
+                        if (ui_visible) {
+                            SDL_SetRelativeMouseMode(SDL_FALSE);
+                            SDL_ShowCursor(SDL_ENABLE);
+                        } else {
+                            SDL_SetRelativeMouseMode(SDL_TRUE);
+                            SDL_ShowCursor(SDL_DISABLE);
+                        }
                     }
                 }
                 if (e.key.keysym.sym == SDLK_F11) {
@@ -202,8 +235,11 @@ int main(int argc, char *argv[])
         double moveSpeed = frameTime * 5.0; // the constant value is in squares/second
         double rotSpeed = frameTime * 3.0; // radians/second
 
-        int mx, my;
-        SDL_GetRelativeMouseState(&mx, &my);
+        int mx = 0;
+        int my = 0;
+        if (!ui_visible) {
+            SDL_GetRelativeMouseState(&mx, &my);
+        }
         if (mx != 0) {
             double rot = -mx * mouseSensitivity;
             double oldDirX = dirX;
@@ -298,7 +334,7 @@ int main(int argc, char *argv[])
         SDL_SetRenderDrawColor(ren, 0,0,0,255);
         SDL_RenderClear(ren);
         SDL_RenderCopy(ren, screenTex, NULL, NULL);
-        if (imgui_enabled) {
+        if (imgui_enabled && ui_visible) {
             imgui_c_new_frame();
             imgui_c_begin("Overlay");
             char fps_text[64];

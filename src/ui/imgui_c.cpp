@@ -56,6 +56,13 @@ void imgui_c_shutdown(void) {
     g_state = {nullptr, nullptr, false};
 }
 
+void imgui_c_process_event(const SDL_Event *event) {
+    if (!g_state.initialized || !event) {
+        return;
+    }
+    ImGui_ImplSDL2_ProcessEvent(event);
+}
+
 void imgui_c_new_frame(void) {
     if (!g_state.initialized) {
         return;
@@ -109,6 +116,10 @@ int imgui_c_init(void *native_context) {
 }
 
 void imgui_c_shutdown(void) {
+}
+
+void imgui_c_process_event(const SDL_Event *event) {
+    (void)event;
 }
 
 void imgui_c_new_frame(void) {
