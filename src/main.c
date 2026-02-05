@@ -1,9 +1,11 @@
 #include <SDL2/SDL.h>
+#include "imgui_c.h"
 #include <math.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include <dirent.h>
 
 #ifndef M_PI
@@ -47,6 +49,7 @@ static int defaultMap[24*24] = {
 #define MAP_AT(x,y) worldMap[(x) + mapW*(y)]
 
 static void load_default_map(void) {
+    (void)defaultMap;
     // generate a BSP-style map for default
     // small BSP generator: carve rooms and connect them with corridors
     int W = mapW; int H = mapH;
@@ -92,7 +95,8 @@ static void load_default_map(void) {
             int rh2 = (rh>4)?(3 + rand()% (rh-2)): (rh);
             nd->roomx = rx; nd->roomy = ry; nd->roomw = rw2; nd->roomh = rh2;
             int sx = rx; int sy = ry; int ex = rx + rw2; int ey = ry + rh2;
-            if (ex >= W-1) ex = W-2; if (ey >= H-1) ey = H-2;
+            if (ex >= W-1) ex = W-2;
+            if (ey >= H-1) ey = H-2;
             for (int yy=sy; yy<ey; yy++) for (int xx=sx; xx<ex; xx++) m[xx + W*yy] = 0;
             if (roomCount < 128) { roomCentersX[roomCount] = rx + rw2/2; roomCentersY[roomCount] = ry + rh2/2; roomCount++; }
         }
@@ -189,6 +193,11 @@ int main(int argc, char *argv[])
         SDL_Quit();
         return 1;
     }
+
+    ImGuiCContext imgui_ctx;
+    imgui_ctx.window = win;
+    imgui_ctx.renderer = ren;
+    int imgui_enabled = imgui_c_init(&imgui_ctx);
 
     double posX = 22.0, posY = 12.0; // player start
     double dirX = -1.0, dirY = 0.0; // initial direction vector
@@ -559,9 +568,19 @@ int main(int argc, char *argv[])
         SDL_SetRenderDrawColor(ren, 0,0,0,255);
         SDL_RenderClear(ren);
         SDL_RenderCopy(ren, screenTex, NULL, NULL);
+        if (imgui_enabled) {
+            imgui_c_new_frame();
+            imgui_c_begin("Overlay");
+            imgui_c_text("ImGui enabled");
+            imgui_c_end();
+            imgui_c_render();
+        }
         SDL_RenderPresent(ren);
     }
 
+    if (imgui_enabled) {
+        imgui_c_shutdown();
+    }
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     if (screenTex) SDL_DestroyTexture(screenTex);
