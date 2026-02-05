@@ -1,0 +1,17 @@
+[Desktop Entry]
+Name=Game90
+Comment=Minimal 90s style raycast shooter
+Exec=/usr/bin/game90 %f
+Terminal=false
+Type=Application
+Categories=Game;Action;
+Icon=game90
+StartupWMClass=game90
+[Desktop Entry]
+Name=game90
+Comment=90s style raycast shooter
+Exec=/usr/bin/game90
+Icon=game90
+Type=Application
+Categories=Game;ActionGame;
+Terminal=false
