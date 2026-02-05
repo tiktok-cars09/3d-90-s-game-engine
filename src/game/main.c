@@ -85,15 +85,13 @@ int main(int argc, char *argv[])
             char *files[256];
             int count = 0;
             while ((ent = readdir(d)) != NULL) {
-                if (ent->d_type == DT_REG) {
-                    const char *name = ent->d_name;
-                    size_t L = strlen(name);
-                    if (L > 4 && strcmp(name + L - 4, ".map") == 0) {
-                        files[count] = malloc(512);
-                        snprintf(files[count], 512, "maps/%s", name);
-                        count++;
-                        if (count >= 255) break;
-                    }
+                const char *name = ent->d_name;
+                size_t L = strlen(name);
+                if (L > 4 && strcmp(name + L - 4, ".map") == 0) {
+                    files[count] = malloc(512);
+                    snprintf(files[count], 512, "maps/%s", name);
+                    count++;
+                    if (count >= 255) break;
                 }
             }
             closedir(d);

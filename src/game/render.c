@@ -28,7 +28,7 @@ void render_world(
     double dirY,
     double planeX,
     double planeY,
-    const Uint32 textures[4][GAME_TEX_W * GAME_TEX_H]) {
+    Uint32 textures[4][GAME_TEX_W * GAME_TEX_H]) {
     // render into pixel buffer at capped render resolution
     int rw = renderW;
     int rh = renderH;
