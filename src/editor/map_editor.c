@@ -38,7 +38,10 @@ static void free_snap(Snap *s) { if (s && s->data) { free(s->data); s->data = NU
 
 static void push_undo(int *map_in, int W_in, int H_in) {
     // clear redo
-    for (int i=0;i<redoCount;i++) free_snap(&redoStack[i]); redoCount = 0;
+    for (int i = 0; i < redoCount; i++) {
+        free_snap(&redoStack[i]);
+    }
+    redoCount = 0;
     // if full, drop oldest (shift left)
     if (undoCount >= MAX_STACK) {
         free_snap(&undoStack[0]);

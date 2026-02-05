@@ -1,0 +1,9 @@
+/game90
+/map_editor
+/build/
+/build-debug/
+/build-release/
+/build/debug/
+/build/release/
+/cmake-build-*/
+/compile_commands.json
