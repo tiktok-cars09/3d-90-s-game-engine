@@ -4,8 +4,8 @@ CXX = g++
 SDL_CFLAGS := $(shell sdl2-config --cflags)
 SDL_LIBS := $(shell sdl2-config --libs)
 
-CFLAGS = -std=c11 -O2 -Wall -Wextra -Wpedantic $(SDL_CFLAGS)
-CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -Wpedantic $(SDL_CFLAGS)
+CFLAGS = -std=c11 -O2 -Wall -Wextra -Wpedantic $(SDL_CFLAGS) -Isrc/ui
+CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -Wpedantic $(SDL_CFLAGS) -Isrc/ui
 LDFLAGS = $(SDL_LIBS) -lm
 
 IMGUI ?= 0
@@ -15,11 +15,11 @@ GAME90_DEFS = -DGAME90_ENABLE_IMGUI=$(IMGUI)
 CXXFLAGS += $(GAME90_DEFS)
 CFLAGS += $(GAME90_DEFS)
 
-GAME_SRC_C = src/main.c
-GAME_SRC_CPP = src/imgui_c.cpp
+GAME_SRC_C = src/game/main.c src/game/map.c src/game/render.c
+GAME_SRC_CPP = src/ui/imgui_c.cpp
 GAME_OBJ = $(GAME_SRC_C:.c=.o) $(GAME_SRC_CPP:.cpp=.o)
 
-EDITOR_SRC = src/map_editor.c
+EDITOR_SRC = src/editor/map_editor.c
 EDITOR_OBJ = $(EDITOR_SRC:.c=.o)
 
 IMGUI_SOURCES =
