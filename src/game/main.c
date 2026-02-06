@@ -71,6 +71,8 @@ int main(int argc, char *argv[])
     } else {
         SDL_SetRelativeMouseMode(SDL_TRUE);
         SDL_ShowCursor(SDL_DISABLE);
+        SDL_RaiseWindow(win);
+        SDL_SetWindowGrab(win, SDL_TRUE);
     }
     bool isFullscreen = false;
 
@@ -156,9 +158,12 @@ int main(int argc, char *argv[])
                     if (ui_visible) {
                         SDL_SetRelativeMouseMode(SDL_FALSE);
                         SDL_ShowCursor(SDL_ENABLE);
+                        SDL_SetWindowGrab(win, SDL_FALSE);
                     } else {
                         SDL_SetRelativeMouseMode(SDL_TRUE);
                         SDL_ShowCursor(SDL_DISABLE);
+                        SDL_RaiseWindow(win);
+                        SDL_SetWindowGrab(win, SDL_TRUE);
                     }
                 }
                 if (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_p) {
@@ -182,9 +187,12 @@ int main(int argc, char *argv[])
                         if (ui_visible) {
                             SDL_SetRelativeMouseMode(SDL_FALSE);
                             SDL_ShowCursor(SDL_ENABLE);
+                            SDL_SetWindowGrab(win, SDL_FALSE);
                         } else {
                             SDL_SetRelativeMouseMode(SDL_TRUE);
                             SDL_ShowCursor(SDL_DISABLE);
+                            SDL_RaiseWindow(win);
+                            SDL_SetWindowGrab(win, SDL_TRUE);
                         }
                     }
                 }
