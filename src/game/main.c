@@ -75,6 +75,9 @@ int main(int argc, char *argv[])
         SDL_SetWindowGrab(win, SDL_TRUE);
     }
     bool isFullscreen = false;
+    bool show_map_picker = false;
+    char *map_files_ui[256] = {0};
+    int map_files_count = 0;
 
     // if no map argument provided, offer to pick one from maps/ or use default
     if (argc > 1) {
@@ -148,7 +151,7 @@ int main(int argc, char *argv[])
     while (running) {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
-            if (imgui_enabled) {
+            if (imgui_enabled && (ui_visible || show_map_picker)) {
                 imgui_c_process_event(&e);
             }
             if (e.type == SDL_QUIT) running = false;
@@ -227,6 +230,27 @@ int main(int argc, char *argv[])
                                 pixels = newPixels2;
                             }
                     }
+                }
+                if (e.key.keysym.sym == SDLK_m) {
+                    // open ImGui map picker
+                    // populate map list
+                    for (int i = 0; i < 256; ++i) { if (map_files_ui[i]) { free(map_files_ui[i]); map_files_ui[i] = NULL; } }
+                    map_files_count = 0;
+                    DIR *d = opendir("maps");
+                    if (d) {
+                        struct dirent *ent;
+                        while ((ent = readdir(d)) != NULL) {
+                            const char *name = ent->d_name;
+                            size_t L = strlen(name);
+                            if (L > 4 && strcmp(name + L - 4, ".map") == 0 && map_files_count < 256) {
+                                map_files_ui[map_files_count] = malloc(512);
+                                snprintf(map_files_ui[map_files_count], 512, "maps/%s", name);
+                                map_files_count++;
+                            }
+                        }
+                        closedir(d);
+                    }
+                    show_map_picker = true;
                 }
             }
         }
@@ -340,13 +364,43 @@ int main(int argc, char *argv[])
         SDL_SetRenderDrawColor(ren, 0,0,0,255);
         SDL_RenderClear(ren);
         SDL_RenderCopy(ren, screenTex, NULL, NULL);
-        if (imgui_enabled && ui_visible) {
+        if (imgui_enabled && (ui_visible || show_map_picker)) {
             imgui_c_new_frame();
-            imgui_c_begin("Overlay");
-            char fps_text[64];
-            snprintf(fps_text, sizeof(fps_text), "FPS: %.1f", fps);
-            imgui_c_text(fps_text);
-            imgui_c_end();
+            
+            if (show_map_picker) {
+                imgui_c_begin("Map Picker");
+                if (map_files_count == 0) {
+                    imgui_c_text("No maps found in maps/");
+                } else {
+                    for (int i = 0; i < map_files_count; ++i) {
+                        const char *p = strrchr(map_files_ui[i], '/');
+                        const char *label = p ? p + 1 : map_files_ui[i];
+                        if (imgui_c_button(label)) {
+                            if (!load_map_file(map_files_ui[i])) {
+                                load_default_map();
+                            } else {
+                                if (posX < 1.0) posX = 1.5;
+                                if (posY < 1.0) posY = 1.5;
+                                if (posX >= mapW - 1) posX = mapW - 2 + 0.5;
+                                if (posY >= mapH - 1) posY = mapH - 2 + 0.5;
+                            }
+                            // close picker
+                            show_map_picker = false;
+                            for (int j = 0; j < map_files_count; ++j) { free(map_files_ui[j]); map_files_ui[j] = NULL; }
+                            map_files_count = 0;
+                            break;
+                        }
+                    }
+                }
+                imgui_c_end();
+            } else if (ui_visible) {
+                imgui_c_begin("Overlay");
+                char fps_text[64];
+                snprintf(fps_text, sizeof(fps_text), "FPS: %.1f", fps);
+                imgui_c_text(fps_text);
+                imgui_c_end();
+            }
+            
             imgui_c_render();
         }
         SDL_RenderPresent(ren);

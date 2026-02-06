@@ -20,6 +20,7 @@ void imgui_c_render(void);
 void imgui_c_begin(const char *name);
 void imgui_c_end(void);
 void imgui_c_text(const char *text);
+int imgui_c_button(const char *label);
 
 #ifdef __cplusplus
 }

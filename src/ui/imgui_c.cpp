@@ -106,6 +106,11 @@ void imgui_c_text(const char *text) {
     ImGui::TextUnformatted(text ? text : "");
 }
 
+int imgui_c_button(const char *label) {
+    if (!g_state.initialized) return 0;
+    return ImGui::Button(label ? label : "") ? 1 : 0;
+}
+
 } // extern "C"
 #else
 extern "C" {
